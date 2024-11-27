@@ -1,1 +1,77 @@
+*****ZooDbContext.cs*****
+using Microsoft.EntityFrameworkCore;
+using ZooLab_1.Models;
 
+namespace ZooLab_1.Data
+{
+    public class ZooDbContext : DbContext
+    {
+        // Налаштування таблиць
+        public DbSet<Animal> Animals { get; set; }    // Таблиця "Animals"
+        public DbSet<Order> Orders { get; set; }      // Таблиця "Orders"
+
+        // Конфігурація підключення до бази даних
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            // Замініть рядок підключення на ваш
+            optionsBuilder.UseSqlServer("YourConnectionStringHere");
+        }
+
+        // Конфігурація моделей (опціонально)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // Налаштування моделі "Animal"
+            modelBuilder.Entity<Animal>(entity =>
+            {
+                entity.HasKey(a => a.Id); // Первинний ключ
+                entity.Property(a => a.Name).IsRequired().HasMaxLength(100); // Ім'я - обов'язкове поле
+                entity.Property(a => a.Type).IsRequired().HasMaxLength(50);  // Тип - обов'язкове поле
+                entity.Property(a => a.Price).HasColumnType("decimal(18,2)"); // Ціна - формат decimal
+            });
+
+            // Налаштування моделі "Order"
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.HasKey(o => o.Id); // Первинний ключ
+                entity.Property(o => o.OrderDate).IsRequired(); // Дата замовлення
+                entity.HasMany(o => o.Animals); // Зв'язок "багато до одного"
+            });
+        }
+    }
+}
+*****ZooDbContext.cs*****
+
+
+*****Animal.cs*****
+namespace ZooLab_1.Models
+{
+    public class Animal
+    {
+        public int Id { get; set; }            // Унікальний ідентифікатор тварини
+        public string Name { get; set; }       // Назва тварини (наприклад, "Кіт")
+        public string Type { get; set; }       // Тип тварини (наприклад, "Ссавець")
+        public decimal Price { get; set; }     // Ціна тварини
+    }
+}
+*****Animal.cs*****
+
+
+*****Order.cs*****
+using System;
+using System.Collections.Generic;
+
+namespace ZooLab_1.Models
+{
+    public class Order
+    {
+        public int Id { get; set; }                   // Унікальний ідентифікатор замовлення
+        public DateTime OrderDate { get; set; }       // Дата створення замовлення
+        public List<Animal> Animals { get; set; }     // Список тварин у замовленні
+
+        public Order()
+        {
+            Animals = new List<Animal>();             // Ініціалізація списку тварин
+        }
+    }
+}
+*****Order.cs*****
